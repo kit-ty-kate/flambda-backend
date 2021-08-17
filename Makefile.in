@@ -232,8 +232,9 @@ config_files: ocaml-stage1-config.status
 .PHONY: install
 install: stage2
 	mkdir -p $(prefix)
-	rsync --copy-links -r $(stage2_prefix)/bin $(prefix)
-	rsync --copy-links -r $(stage2_prefix)/lib $(prefix)
+	PATH=$(stage1_prefix)/bin:$$PATH \
+	  ARCH=`grep '^ARCH=' ocaml/Makefile.config | cut -d'=' -f2` \
+	  $(dune) install --profile=release --build-dir=_build2
 	rm -f $(prefix)/bin/ocamllex
 	ln -s $(prefix)/bin/ocamllex.opt $(prefix)/bin/ocamllex
 	rm -f $(prefix)/bin/flambda_backend.main*
@@ -241,6 +242,8 @@ install: stage2
 	rm -rf $(prefix)/lib/stublibs
 	rm -f $(prefix)/lib/ocaml/META
 	rm -f $(prefix)/lib/ocaml/dune-package
+	rm -rf $(prefix)/doc/flambda_backend
+	rm -rf $(prefix)/doc/ocaml
 	rm -f $(prefix)/lib/ocaml/compiler-libs/*.cmo
 	rm -rf $(prefix)/lib/flambda_backend
 	for file in topdirs opttopdirs; do \
